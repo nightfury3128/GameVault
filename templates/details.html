@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{{ game.name }} - Details</title>
+    <style>
+        body {
+            background-color: #121212;
+            color: #ffffff;
+            font-family: Arial, sans-serif;
+            position: relative;
+        }
+        .game-card {
+            background-color: #1e1e1e;
+            border: 1px solid #333;
+            border-radius: 8px;
+            padding: 16px;
+            margin: 16px 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+        .game-card img {
+            max-width: 300px;
+            border-radius: 8px;
+            margin-bottom: 16px;
+        }
+        .game-card h2 {
+            margin: 0 0 8px 0;
+        }
+        .game-card p {
+            margin: 4px 0;
+        }
+        audio {
+            margin-top: 16px;
+        }
+    </style>
+</head>
+<body>
+    <h1>{{ game.name }} - Details</h1>
+    <div class="game-card">
+        <img src="{{ game.background_image }}" alt="{{ game.name }}">
+        <h2>{{ game.name }}</h2>
+        <p><strong>Description:</strong> {{ game.description_raw }}</p>
+        <p><strong>Release Date:</strong> {{ game.released }}</p>
+        <p><strong>Genres:</strong>
+            {% for genre in game.genres %}
+                {{ genre.name }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+        <p><strong>Developers:</strong>
+            {% for developer in game.developers %}
+                {{ developer.name }}{% if not loop.last %}, {% endif %}
+            {% endfor %}
+        </p>
+    </div>
+</body>
+</html>
