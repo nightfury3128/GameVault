@@ -5,11 +5,15 @@ from quart import Quart, render_template, request, jsonify
 import json
 
 app = Quart(__name__)
-with open('cred.json', 'r') as f:
-    config = json.load(f)
 
+# Load API key and base URL from config.json
+def load_config():
+    with open('config.json') as f:
+        return json.load(f)
+
+config = load_config()
 API_KEY = config['API_KEY']
-BASE_URL = 'https://api.rawg.io/api'
+BASE_URL = config['BASE_URL']
 
 async def get_game_info(session, title):
     url = f"{BASE_URL}/games"
