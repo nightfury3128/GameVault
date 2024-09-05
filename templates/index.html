@@ -1,590 +1,293 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Library</title>
+    <title>Game Data Finder</title>
+    <!-- Bootstrap CSS -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <!-- Custom CSS for Theme and Flip Effect -->
     <style>
         body {
-            background-color: var(--bg-color);
+            background-color: var(--background-color);
             color: var(--text-color);
             font-family: Arial, sans-serif;
-            display: flex;
+            padding: 20px;
             transition: background-color 0.3s, color 0.3s;
-            margin: 0;
         }
+
         :root {
-            --bg-color: #121212;
-            --text-color: #ffffff;
-            --card-bg-color: #1e1e1e;
-            --border-color: #333;
-            --primary-color: #ffcc00;
-            --favorite-color: #ffcc00;
+            --background-color: #f8f9fa;
+            --text-color: #343a40;
+            --card-bg-color: #fff;
+            --card-border-color: #dee2e6;
+            --button-bg-color: #007bff;
+            --button-text-color: #fff;
+            --button-bg-color-hover: #0056b3;
+            --card-hover-bg-color: #e9ecef;
         }
-        [data-theme="light"] {
-            --bg-color: #ffffff;
-            --text-color: #000000;
-            --card-bg-color: #f9f9f9;
-            --border-color: #ccc;
-            --primary-color: #ffcc00;
-            --favorite-color: #ffcc00;
+
+        [data-theme="dark"] {
+            --background-color: #343a40;
+            --text-color: #f8f9fa;
+            --card-bg-color: #495057;
+            --card-border-color: #6c757d;
+            --button-bg-color: #6c757d;
+            --button-text-color: #f8f9fa;
+            --button-bg-color-hover: #5a6268;
+            --card-hover-bg-color: #6c757d;
         }
-        .sidebar {
-            width: 250px;
-            background-color: var(--card-bg-color);
-            padding: 20px;
-            box-shadow: 2px 0 5px rgba(0,0,0,0.5);
-            height: 100vh;
-            position: fixed;
-            left: -250px; /* Hide sidebar by default */
-            transition: left 0.3s;
-            z-index: 1000;
-        }
-        .sidebar a {
+
+        h1 {
             color: var(--text-color);
-            text-decoration: none;
-            display: block;
-            padding: 10px 0;
-            transition: color 0.3s;
         }
-        .sidebar a:hover, .sidebar a.active {
-            color: var(--primary-color);
+
+        .game-container {
+            margin-top: 20px;
         }
-        .sidebar-toggle {
-            background-color: var(--card-bg-color);
-            color: var(--text-color);
-            border: none;
-            font-size: 24px;
-            padding: 10px;
-            cursor: pointer;
-            position: fixed;
-            top: 10px;
-            left: 10px;
-            z-index: 1001;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .sidebar-toggle:hover {
-            background-color: var(--primary-color);
-            color: var(--bg-color);
-        }
-        .sidebar.active {
-            left: 0; /* Show sidebar when active */
-        }
-        .main-content {
-            margin-left: 0;
-            padding: 20px;
-            flex: 1;
-            transition: margin-left 0.3s;
-        }
-        .sidebar.active + .main-content {
-            margin-left: 250px; /* Adjust margin-left when sidebar is active */
-        }
-        .controls {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 20px;
-            flex-wrap: wrap;
-        }
-        .search-bar {
-            background-color: var(--card-bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            width: 300px;
-            flex: 1;
-            margin-bottom: 10px;
-        }
-        .sort-dropdown {
-            background-color: var(--card-bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px;
-            margin-right: 10px;
-            cursor: pointer;
-            flex: 1;
-            min-width: 150px;
-            margin-bottom: 10px;
-        }
-        .edit-button, .theme-toggle {
-            background-color: var(--card-bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 8px 16px;
-            cursor: pointer;
-            margin-left: 10px;
-            transition: background-color 0.3s, color 0.3s;
-            flex: 1;
-            min-width: 150px;
-            margin-bottom: 10px;
-        }
-        .edit-button:hover, .theme-toggle:hover {
-            background-color: var(--primary-color);
-            color: var(--bg-color);
-        }
+
         .game-card {
-            background-color: var(--card-bg-color);
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            padding: 16px;
-            margin: 16px;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            cursor: pointer;
-            transition: transform 0.3s, box-shadow 0.3s;
             position: relative;
-            width: calc(100% - 32px);
-            box-sizing: border-box;
-        }
-        .game-card:hover {
-            transform: scale(1.02);
-            box-shadow: 0 0 15px rgba(0, 0, 0, 0.5);
-        }
-        .game-card img {
-            max-width: 100%;
-            border-radius: 8px;
-            margin-bottom: 16px;
-            transition: transform 0.3s; /* Smooth image scaling */
-        }
-        .game-card:hover img {
-            transform: scale(1.1); /* Scale image on hover */
-        }
-        .game-card h2 {
-            margin: 0 0 8px 0;
-            text-align: center;
-        }
-        .game-card p {
-            margin: 4px 0;
-            text-align: center;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-        .favorite {
-            position: absolute;
-            top: 10px;
-            right: 10px;
-            font-size: 24px;
+            width: 100%;
+            height: 300px;
+            perspective: 1000px;
+            margin-bottom: 20px;
             cursor: pointer;
-            color: var(--border-color);
         }
-        .favorite.selected {
-            color: var(--favorite-color);
-        }
-        .game-extra-info {
-            display: none;
+
+        .game-card-inner {
             position: absolute;
-            bottom: 10px;
-            left: 10px;
-            right: 10px;
-            background: rgba(0, 0, 0, 0.7);
-            color: white;
-            padding: 10px;
-            border-radius: 8px;
-            z-index: 10;
-        }
-        .game-card:hover .game-extra-info {
-            display: block;
-        }
-        .modal {
-            display: none;
-            position: fixed;
-            z-index: 1000;
-            left: 0;
-            top: 0;
             width: 100%;
             height: 100%;
-            overflow: auto;
-            background-color: rgba(0,0,0,0.5);
-            padding-top: 60px;
-            opacity: 0;
-            transition: opacity 0.5s, transform 0.5s;
+            transform-style: preserve-3d;
+            transition: transform 0.6s;
         }
-        .modal-content {
-            background-color: var(--card-bg-color);
-            margin: 5% auto;
-            padding: 20px;
-            border: 1px solid var(--border-color);
-            border-radius: 8px;
-            width: 80%;
-            max-width: 600px;
-            transform: translateY(-100px);
-            transition: transform 0.5s;
+
+        .game-card:hover .game-card-inner {
+            transform: rotateY(180deg);
         }
-        .modal.show {
-            opacity: 1;
-        }
-        .modal.show .modal-content {
-            transform: translateY(0);
-        }
-        .close {
-            color: #aaa;
-            float: right;
-            font-size: 28px;
-            font-weight: bold;
-        }
-        .close:hover,
-        .close:focus {
-            color: #fff;
-            text-decoration: none;
-            cursor: pointer;
-        }
-        .carousel {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .carousel img {
-            max-width: 80%;
-            border-radius: 8px;
-            margin: 10px;
-        }
-        .carousel-button {
-            background-color: var(--border-color);
-            color: var(--text-color);
-            border: none;
-            padding: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s, color 0.3s;
-        }
-        .carousel-button:hover {
-            background-color: var(--primary-color);
-            color: var(--bg-color);
-        }
-        .rating {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-        }
-        .rating span {
-            font-size: 24px;
-            cursor: pointer;
-            color: var(--border-color);
-            transition: color 0.3s;
-        }
-        .rating span.selected,
-        .rating span:hover,
-        .rating span:hover ~ span {
-            color: var(--primary-color);
-        }
-        .tooltip {
+
+        .game-card-front, .game-card-back {
             position: absolute;
-            background-color: var(--border-color);
-            color: var(--text-color);
-            border-radius: 4px;
-            padding: 5px;
-            font-size: 12px;
-            display: none;
-            top: 5px;
-            right: 5px;
-        }
-        .game-card:hover .tooltip {
-            display: block;
-        }
-        .games-grid {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: center;
-        }
-        .pagination {
-            display: flex;
-            justify-content: center;
-            margin: 20px 0;
-        }
-        .pagination button {
-            background-color: var(--card-bg-color);
-            color: var(--text-color);
-            border: 1px solid var(--border-color);
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border: 1px solid var(--card-border-color);
             border-radius: 8px;
-            padding: 8px 16px;
+            background-color: var(--card-bg-color);
+            padding: 15px;
+        }
+
+        .game-card-back {
+            transform: rotateY(180deg);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: var(--text-color);
+        }
+
+        .game-card img {
+            width: 120px;
+            height: auto;
+            border-radius: 8px;
+            margin-right: 20px;
+        }
+
+        .game-card h5 {
+            margin: 0;
+            color: var(--button-bg-color);
+        }
+
+        .game-card p {
+            margin: 5px 0;
+            color: var(--text-color);
+        }
+
+        .form-control {
+            width: 80%;
+            display: inline-block;
+        }
+
+        .btn-submit {
+            margin-top: 10px;
+            background-color: var(--button-bg-color);
+            color: var(--button-text-color);
+        }
+
+        .btn-submit:hover {
+            background-color: var(--button-bg-color-hover);
+        }
+
+        .theme-toggle {
             cursor: pointer;
-            margin: 0 5px;
-            transition: background-color 0.3s, color 0.3s;
+            font-size: 1.5rem;
+            margin-top: 10px;
+            color: var(--button-bg-color);
         }
-        .pagination button:hover {
-            background-color: var(--primary-color);
-            color: var(--bg-color);
+
+        /* Spinner Styling */
+        #spinner {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            width: 100vw;
+            background-color: rgba(255, 255, 255, 0.7);
+            z-index: 1050;
+            position: fixed;
+            top: 0;
+            left: 0;
         }
-        @media (min-width: 600px) {
-            .game-card {
-                width: calc(50% - 32px);
-            }
+
+        .spinner-border {
+            width: 3rem;
+            height: 3rem;
         }
-        @media (min-width: 900px) {
-            .game-card {
-                width: calc(33.333% - 32px);
-            }
-        }
-        @media (min-width: 1200px) {
-            .game-card {
-                width: calc(25% - 32px);
-            }
+
+        /* Modal Styles */
+        .modal-content {
+            border-radius: 10px;
         }
     </style>
-    <script>
-        let currentGameId = null;
-        let currentPage = 1;
-        const gamesPerPage = 8;
+</head>
 
-        document.addEventListener('DOMContentLoaded', () => {
-            applyPagination();
-            document.getElementById('theme-toggle').addEventListener('click', toggleTheme);
-            document.getElementById('sidebar-toggle').addEventListener('click', () => {
-                document.querySelector('.sidebar').classList.toggle('active');
-                document.querySelector('.main-content').classList.toggle('sidebar-active');
+<body>
+    <div class="container">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1>Game Data Finder</h1>
+            <span class="theme-toggle" id="themeToggle" title="Toggle Light/Dark Mode">🌙</span>
+        </div>
+        <form method="POST" class="mb-4">
+            <label for="directories" class="form-label">Enter the paths of directories separated by commas:</label>
+            <input type="text" id="directories" name="directories" class="form-control" placeholder="C:\Games, D:\SteamLibrary" required>
+            <button type="submit" class="btn btn-primary btn-submit">Search</button>
+        </form>
+
+        {% if game_data_list %}
+        <div class="game-container">
+            <h2>Results:</h2>
+            <div class="row">
+                {% for game in game_data_list %}
+                <div class="col-md-6">
+                    <div class="game-card">
+                        <div class="game-card-inner">
+                            <div class="game-card-front">
+                                {% if game.error %}
+                                <p><strong>Folder:</strong> {{ game.folder }}</p>
+                                <p><strong>Error:</strong> {{ game.error }}</p>
+                                {% else %}
+                                <img src="{{ game.background_image }}" alt="{{ game.name }} Image">
+                                <div>
+                                    <h5>{{ game.name }}</h5>
+                                    <p><strong>Release Date:</strong> {{ game.release_date }}</p>
+                                    <p><strong>Metacritic Score:</strong> {{ game.metacritic }}</p>
+                                </div>
+                                {% endif %}
+                            </div>
+                            <div class="game-card-back">
+                                <h5>{{ game.name }}</h5>
+                                <p><strong>Description:</strong> {{ game.description }}</p>
+                                <p><strong>Genres:</strong> {{ game.genres }}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+    </div>
+
+    <!-- Loading Spinner -->
+    <div id="spinner" class="d-none">
+        <div class="spinner-border" role="status">
+            <span class="visually-hidden">Loading...</span>
+        </div>
+    </div>
+
+    <!-- Game Details Modal -->
+    <div class="modal fade" id="gameModal" tabindex="-1" aria-labelledby="gameModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="gameModalLabel">Game Details</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="d-flex">
+                        <img id="modalImage" src="" alt="Game Image" class="img-fluid me-3" style="width: 200px; height: auto; border-radius: 8px;">
+                        <div>
+                            <h5 id="modalName"></h5>
+                            <p><strong>Release Date:</strong> <span id="modalReleaseDate"></span></p>
+                            <p><strong>Metacritic Score:</strong> <span id="modalMetacritic"></span></p>
+                            <p><strong>Description:</strong> <span id="modalDescription"></span></p>
+                            <p><strong>Genres:</strong> <span id="modalGenres"></span></p>
+                        </div>
+                    </div>
+                    <p id="modalError" class="mt-3 text-danger"></p>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS and Popper.js (Optional) -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    <!-- Custom JS for Theme Toggle, Loading Spinner, and Modal -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function () {
+            const themeToggle = document.getElementById('themeToggle');
+            const spinner = document.getElementById('spinner');
+            const form = document.querySelector('form');
+            const modal = new bootstrap.Modal(document.getElementById('gameModal'));
+
+            const currentTheme = localStorage.getItem('theme') || 'light';
+            document.documentElement.setAttribute('data-theme', currentTheme);
+            themeToggle.textContent = currentTheme === 'dark' ? '🌞' : '🌙';
+
+            themeToggle.addEventListener('click', function () {
+                const newTheme = document.documentElement.getAttribute('data-theme') === 'light' ? 'dark' : 'light';
+                document.documentElement.setAttribute('data-theme', newTheme);
+                localStorage.setItem('theme', newTheme);
+                themeToggle.textContent = newTheme === 'dark' ? '🌞' : '🌙';
             });
-            window.addEventListener('resize', handleResize);
-            const ratings = document.querySelectorAll('.rating span');
-            ratings.forEach((star, idx) => {
-                star.addEventListener('click', () => setRating(idx + 1));
+
+            form.addEventListener('submit', function () {
+                spinner.classList.remove('d-none'); // Show spinner
             });
-            const sidebarLinks = document.querySelectorAll('.sidebar a');
-            sidebarLinks.forEach(link => {
-                link.addEventListener('click', () => {
-                    sidebarLinks.forEach(l => l.classList.remove('active'));
-                    link.classList.add('active');
+
+            document.querySelectorAll('.game-card').forEach(card => {
+                card.addEventListener('click', function () {
+                    const name = card.querySelector('.game-card-front h5').textContent;
+                    const releaseDate = card.querySelector('.game-card-front p:nth-of-type(1)').textContent.split(': ')[1];
+                    const metacritic = card.querySelector('.game-card-front p:nth-of-type(2)').textContent.split(': ')[1];
+                    const backgroundImage = card.querySelector('.game-card-front img').src;
+                    const description = card.querySelector('.game-card-back p:nth-of-type(1)').textContent.split(': ')[1];
+                    const genres = card.querySelector('.game-card-back p:nth-of-type(2)').textContent.split(': ')[1];
+                    const error = card.querySelector('.game-card-front p:nth-of-type(2)').textContent.split(': ')[1] || '';
+
+                    document.getElementById('modalName').textContent = name;
+                    document.getElementById('modalReleaseDate').textContent = releaseDate;
+                    document.getElementById('modalMetacritic').textContent = metacritic;
+                    document.getElementById('modalImage').src = backgroundImage;
+                    document.getElementById('modalDescription').textContent = description;
+                    document.getElementById('modalGenres').textContent = genres;
+                    document.getElementById('modalError').textContent = error ? `Error: ${error}` : '';
+
+                    modal.show();
                 });
             });
         });
 
-        function openModal(gameId) {
-            currentGameId = gameId;
-            const modal = document.getElementById('imageModal-' + gameId);
-            modal.classList.add('show');
-        }
-
-        function closeModal(gameId) {
-            const modal = document.getElementById('imageModal-' + gameId);
-            modal.classList.remove('show');
-        }
-
-        function selectImage(gameId, imageUrl) {
-            document.getElementById('selected-image-' + gameId).src = imageUrl;
-            const images = document.querySelectorAll('.image-options-' + gameId + ' img');
-            images.forEach(img => img.classList.remove('selected'));
-            document.querySelector('.image-options-' + gameId + ' img[src="' + imageUrl + '"]').classList.add('selected');
-            closeModal(gameId);
-        }
-
-        function sortGames(sortBy) {
-            const games = document.querySelectorAll('.game-card');
-            const gamesArray = Array.from(games);
-            gamesArray.sort((a, b) => {
-                const aValue = a.getAttribute('data-' + sortBy).toLowerCase();
-                const bValue = b.getAttribute('data-' + sortBy).toLowerCase();
-                if (aValue < bValue) return -1;
-                if (aValue > bValue) return 1;
-                return 0;
-            });
-            const container = document.getElementById('games-container');
-            container.innerHTML = '';
-            gamesArray.forEach(game => container.appendChild(game));
-            applyPagination();
-        }
-
-        function showLocation(path) {
-            alert(`Game is located at: ${path}`);
-        }
-
-        function filterGames() {
-            const query = document.getElementById('search-bar').value.toLowerCase();
-            const games = document.querySelectorAll('.game-card');
-            games.forEach(game => {
-                const name = game.getAttribute('data-name').toLowerCase();
-                const genre = game.getAttribute('data-genre').toLowerCase();
-                if (name.includes(query) || genre.includes(query)) {
-                    game.style.display = 'flex';
-                } else {
-                    game.style.display = 'none';
-                }
-            });
-            applyPagination();
-        }
-
-        function toggleFavorite(gameId) {
-            const favoriteIcon = document.getElementById('favorite-' + gameId);
-            favoriteIcon.classList.toggle('selected');
-        }
-
-        function toggleTheme() {
-            const currentTheme = document.documentElement.getAttribute('data-theme');
-            const newTheme = currentTheme === 'light' ? 'dark' : 'light';
-            document.documentElement.setAttribute('data-theme', newTheme);
-        }
-
-        function applyPagination() {
-            const games = document.querySelectorAll('.game-card');
-            const totalPages = Math.ceil(games.length / gamesPerPage);
-
-            games.forEach((game, index) => {
-                game.style.display = (index >= (currentPage - 1) * gamesPerPage && index < currentPage * gamesPerPage) ? 'flex' : 'none';
-            });
-
-            const paginationContainer = document.getElementById('pagination');
-            paginationContainer.innerHTML = '';
-            for (let i = 1; i <= totalPages; i++) {
-                const button = document.createElement('button');
-                button.textContent = i;
-                button.onclick = () => {
-                    currentPage = i;
-                    applyPagination();
-                    document.getElementById('games-container').scrollIntoView({ behavior: 'smooth' });
-                };
-                if (i === currentPage) {
-                    button.style.fontWeight = 'bold';
-                }
-                paginationContainer.appendChild(button);
-            }
-        }
-
-        function handleResize() {
-            const games = document.querySelectorAll('.game-card p');
-            games.forEach(p => {
-                p.style.maxHeight = `${p.parentElement.clientHeight / 3}px`;
-            });
-        }
-
-        function setRating(rating) {
-            const stars = document.querySelectorAll('.rating span');
-            stars.forEach((star, idx) => {
-                if (idx < rating) {
-                    star.classList.add('selected');
-                } else {
-                    star.classList.remove('selected');
-                }
-            });
-        }
-    </script>
-</head>
-<body>
-    <button id="sidebar-toggle" class="sidebar-toggle">☰</button>
-    <div class="sidebar">
-        <a href="#all" class="active">All Games</a>
-        <a href="#favorites">Favorites</a>
-        <a href="#genres">Genres</a>
-        <!-- Add more navigation links as needed -->
-    </div>
-    <div class="main-content">
-        <div class="controls">
-            <input type="text" id="search-bar" class="search-bar" oninput="filterGames()" placeholder="Search games...">
-            <select class="sort-dropdown" onchange="sortGames(this.value)">
-                <option value="name">Sort by Name</option>
-                <option value="genre">Sort by Genre</option>
-            </select>
-            <button class="edit-button" onclick="openEditModal()">Edit</button>
-            <button id="theme-toggle" class="theme-toggle">Toggle Theme</button>
-        </div>
-        <h1>Game Library</h1>
-        <div id="games-container" class="games-grid">
-            {% for game in games %}
-            <div class="game-card" onclick="showLocation('{{ game.local_path }}')" data-name="{{ game.name }}" data-genre="{{ game.genres[0]['name'] if game.genres else '' }}">
-                <img id="selected-image-{{ game.id }}" src="{{ game.background_image }}" alt="{{ game.name }}" onclick="openModal('{{ game.id }}'); event.stopPropagation();">
-                <span id="favorite-{{ game.id }}" class="favorite" onclick="toggleFavorite('{{ game.id }}'); event.stopPropagation();">&#9733;</span>
-                <div>
-                    <h2>{{ game.name }}</h2>
-                    <p class="single-line"><strong>Description:</strong> {{ game.description_raw }}</p>
-                    <p><strong>Release Date:</strong> {{ game.released }}</p>
-                    <p><strong>Genres:</strong>
-                        {% for genre in game.genres %}
-                            {{ genre.name }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                    </p>
-                    <p><strong>Developers:</strong>
-                        {% for developer in game.developers %}
-                            {{ developer.name }}{% if not loop.last %}, {% endif %}
-                        {% endfor %}
-                    </p>
-                    <div class="game-extra-info">
-                        <p><strong>Release Date:</strong> {{ game.released }}</p>
-                        <p><strong>Genres:</strong> {% for genre in game.genres %} {{ genre.name }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                        <p><strong>Developers:</strong> {% for developer in game.developers %} {{ developer.name }}{% if not loop.last %}, {% endif %}{% endfor %}</p>
-                    </div>
-                </div>
-                <div class="tooltip">Click to see the location</div>
-                <div class="rating">
-                    <span>&#9733;</span>
-                    <span>&#9733;</span>
-                    <span>&#9733;</span>
-                    <span>&#9733;</span>
-                    <span>&#9733;</span>
-                </div>
-            </div>
-            <!-- Modal -->
-            <div id="imageModal-{{ game.id }}" class="modal">
-                <div class="modal-content">
-                    <span class="close" onclick="closeModal('{{ game.id }}')">&times;</span>
-                    <div class="carousel">
-                        <button class="carousel-button" onclick="prevImage('{{ game.id }}')">&lt;</button>
-                        <img src="{{ game.background_image }}" class="carousel-image">
-                        <button class="carousel-button" onclick="nextImage('{{ game.id }}')">&gt;</button>
-                    </div>
-                    <div class="image-options image-options-{{ game.id }}" style="display: none;">
-                        {% if game.background_image %}
-                        <img src="{{ game.background_image }}" onclick="selectImage('{{ game.id }}', '{{ game.background_image }}')" class="selected">
-                        {% endif %}
-                        {% if game.background_image_additional %}
-                        <img src="{{ game.background_image_additional }}" onclick="selectImage('{{ game.id }}', '{{ game.background_image_additional }}')">
-                        {% endif %}
-                        {% for screenshot in game.screenshots %}
-                        <img src="{{ screenshot.image }}" onclick="selectImage('{{ game.id }}', '{{ screenshot.image }}')">
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-            {% endfor %}
-        </div>
-        <div id="pagination" class="pagination"></div>
-    </div>
-
-    <!-- Edit Modal -->
-    <div id="editModal" class="modal">
-        <div class="modal-content">
-            <span class="close" onclick="closeEditModal()">&times;</span>
-            <h2>Edit Game Details</h2>
-            <form id="edit-form">
-                <div>
-                    <label for="edit-name">Name:</label>
-                    <input type="text" id="edit-name" name="name" required>
-                </div>
-                <div>
-                    <label for="edit-description">Description:</label>
-                    <textarea id="edit-description" name="description" required></textarea>
-                </div>
-                <div>
-                    <label for="edit-release-date">Release Date:</label>
-                    <input type="date" id="edit-release-date" name="release_date" required>
-                </div>
-                <div>
-                    <label for="edit-genres">Genres:</label>
-                    <input type="text" id="edit-genres" name="genres" required>
-                </div>
-                <div>
-                    <label for="edit-developers">Developers:</label>
-                    <input type="text" id="edit-developers" name="developers" required>
-                </div>
-                <button type="submit">Save Changes</button>
-            </form>
-        </div>
-    </div>
-    <script>
-        function openEditModal() {
-            const modal = document.getElementById('editModal');
-            modal.classList.add('show');
-        }
-
-        function closeEditModal() {
-            const modal = document.getElementById('editModal');
-            modal.classList.remove('show');
-        }
-
-        document.getElementById('edit-form').addEventListener('submit', function(event) {
-            event.preventDefault();
-            // Add logic to save the changes
-            closeEditModal();
+        // Hide spinner on page load or data fetch completion
+        window.addEventListener('load', function () {
+            document.getElementById('spinner').classList.add('d-none');
         });
     </script>
 </body>
+
 </html>
